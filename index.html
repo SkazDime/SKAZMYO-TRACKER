@@ -1,0 +1,341 @@
+<html><head><base href="https://websim.example.com/skazius-strength-tracker/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Skazius Strength Tracker App</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 10px;
+    background-color: #121212;
+    color: #e0e0e0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  .logo {
+    display: block;
+    margin: 0 auto 15px;
+    max-width: 100px;
+    height: auto;
+  }
+  h1, h2 {
+    color: #0892fc;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  input, button, select {
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: #2c2c2c;
+    color: #e0e0e0;
+    font-size: 16px;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #0892fc;
+  }
+  button {
+    background-color: #0892fc;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    font-weight: bold;
+    touch-action: manipulation;
+  }
+  button:hover, button:focus {
+    background-color: #0775d1;
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .set-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .set-container input {
+    flex: 1;
+  }
+  .remove-set {
+    background-color: #cf6679;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 14px;
+  }
+  .remove-set:hover, .remove-set:focus {
+    background-color: #b55464;
+  }
+  #add-set {
+    background-color: #b4fc57;
+    color: #121212;
+  }
+  #add-set:hover, #add-set:focus {
+    background-color: #9edf4a;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: #2c2c2c;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 8px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    font-size: 14px;
+  }
+  th {
+    background-color: #333;
+    color: #0892fc;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  #export-btn {
+    background-color: #b4fc57;
+    color: #121212;
+    margin-top: 10px;
+  }
+  #export-btn:hover, #export-btn:focus {
+    background-color: #9edf4a;
+  }
+  @media (max-width: 480px) {
+    .set-container {
+      flex-direction: column;
+      gap: 5px;
+    }
+    .set-container input, .set-container button {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <img src="/a/552f80ca-b7fa-4607-b91a-bb88de2f2689" alt="Stylized skull helmet logo in red and black" class="logo" width="100" height="100">
+    <h1>Skazius Strength Tracker</h1>
+    <form id="exercise-form">
+      <input type="date" id="date" required>
+      <select id="exercise" required>
+        <option value="">Select Exercise</option>
+        <option value="Bench Press">Bench Press</option>
+        <option value="Squat">Squat</option>
+        <option value="Deadlift">Deadlift</option>
+        <option value="Overhead Press">Overhead Press</option>
+        <option value="Barbell Row">Barbell Row</option>
+        <option value="other">Other (specify)</option>
+      </select>
+      <input type="text" id="custom-exercise" placeholder="Custom Exercise Name" style="display: none;">
+      <input type="number" id="weight" placeholder="Weight (lbs)" required>
+      <div id="sets-container">
+        <div class="set-container">
+          <input type="number" class="reps" placeholder="Reps for Set 1" required>
+          <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
+        </div>
+      </div>
+      <button type="button" id="add-set">Add Set</button>
+      <button type="submit">Add Exercise</button>
+    </form>
+    <h2>Exercise Log</h2>
+    <table id="exercise-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Exercise</th>
+          <th>Weight</th>
+          <th>Sets</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="export-btn">Export to CSV</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+
+    const form = document.getElementById('exercise-form');
+    const table = document.getElementById('exercise-table').getElementsByTagName('tbody')[0];
+    const exportBtn = document.getElementById('export-btn');
+    const addSetBtn = document.getElementById('add-set');
+    const setsContainer = document.getElementById('sets-container');
+    const exerciseSelect = document.getElementById('exercise');
+    const customExerciseInput = document.getElementById('custom-exercise');
+    let exercises = JSON.parse(localStorage.getItem('exercises')) || [];
+
+    document.getElementById('date').valueAsDate = new Date();
+
+    exerciseSelect.addEventListener('change', function() {
+      if (this.value === 'other') {
+        customExerciseInput.style.display = 'block';
+        customExerciseInput.required = true;
+      } else {
+        customExerciseInput.style.display = 'none';
+        customExerciseInput.required = false;
+      }
+    });
+
+    function renderExercises() {
+      table.innerHTML = '';
+      exercises.forEach((exercise, index) => {
+        const row = table.insertRow();
+        const setsInfo = exercise.sets.map(set => `Set ${set.setNumber}: ${set.reps}`).join('<br>');
+        row.innerHTML = `
+          <td>${exercise.date}</td>
+          <td>${exercise.name}</td>
+          <td>${exercise.weight}</td>
+          <td>${setsInfo}</td>
+          <td>
+            <button onclick="editExercise(${index})">Edit</button>
+            <button onclick="deleteExercise(${index})">Delete</button>
+          </td>
+        `;
+      });
+    }
+
+    function addSet() {
+      const setNumber = setsContainer.children.length + 1;
+      const setDiv = document.createElement('div');
+      setDiv.className = 'set-container';
+      setDiv.innerHTML = `
+        <input type="number" class="reps" placeholder="Reps for Set ${setNumber}" required>
+        <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
+      `;
+      setsContainer.appendChild(setDiv);
+    }
+
+    function removeSet(button) {
+      if (setsContainer.children.length > 1) {
+        button.parentElement.remove();
+        updateSetNumbers();
+      }
+    }
+
+    function updateSetNumbers() {
+      const setInputs = setsContainer.getElementsByClassName('reps');
+      for (let i = 0; i < setInputs.length; i++) {
+        setInputs[i].placeholder = `Reps for Set ${i + 1}`;
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
+      const exercise = {
+        date: document.getElementById('date').value,
+        name: exerciseName,
+        weight: document.getElementById('weight').value,
+        sets: Array.from(setsContainer.getElementsByClassName('reps')).map((input, index) => ({
+          setNumber: index + 1,
+          reps: input.value
+        }))
+      };
+      exercises.push(exercise);
+      localStorage.setItem('exercises', JSON.stringify(exercises));
+      renderExercises();
+      form.reset();
+      document.getElementById('date').valueAsDate = new Date();
+      setsContainer.innerHTML = '';
+      addSet();
+      customExerciseInput.style.display = 'none';
+    });
+
+    function editExercise(index) {
+      const exercise = exercises[index];
+      document.getElementById('date').value = exercise.date;
+      if (exerciseSelect.querySelector(`option[value="${exercise.name}"]`)) {
+        exerciseSelect.value = exercise.name;
+        customExerciseInput.style.display = 'none';
+      } else {
+        exerciseSelect.value = 'other';
+        customExerciseInput.value = exercise.name;
+        customExerciseInput.style.display = 'block';
+      }
+      document.getElementById('weight').value = exercise.weight;
+      setsContainer.innerHTML = '';
+      exercise.sets.forEach(set => {
+        addSet();
+        setsContainer.lastChild.getElementsByClassName('reps')[0].value = set.reps;
+      });
+      exercises.splice(index, 1);
+      localStorage.setItem('exercises', JSON.stringify(exercises));
+      renderExercises();
+    }
+
+    function deleteExercise(index) {
+      if (confirm('Are you sure you want to delete this exercise?')) {
+        exercises.splice(index, 1);
+        localStorage.setItem('exercises', JSON.stringify(exercises));
+        renderExercises();
+      }
+    }
+
+    exportBtn.addEventListener('click', () => {
+      const flattenedExercises = exercises.flatMap(exercise => 
+        exercise.sets.map(set => ({
+          date: exercise.date,
+          name: exercise.name,
+          weight: exercise.weight,
+          setNumber: set.setNumber,
+          reps: set.reps
+        }))
+      );
+      const csv = Papa.unparse(flattenedExercises);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'skazius_strength_data.csv';
+      link.click();
+    });
+
+    addSetBtn.addEventListener('click', addSet);
+
+    addSet();
+    renderExercises();
+
+    // Prevent zooming on inputs
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>
