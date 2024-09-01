@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Skazius Strength Tracker App</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="https://skazdime.github.io/SKAZIUS-STRENGTH-TRACKER/manifest.json">
 <style>
   body {
     font-family: 'Roboto', sans-serif;
@@ -127,12 +127,22 @@
   #export-btn:hover, #export-btn:focus {
     background-color: #9edf4a;
   }
+  .time-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .time-container input {
+    flex: 1;
+  }
   @media (max-width: 480px) {
-    .set-container {
+    .set-container, .time-container {
       flex-direction: column;
       gap: 5px;
     }
-    .set-container input, .set-container button {
+    .set-container input, .set-container button,
+    .time-container input {
       width: 100%;
     }
   }
@@ -144,6 +154,10 @@
     <h1>Skazius Strength Tracker</h1>
     <form id="exercise-form">
       <input type="date" id="date" required>
+      <div class="time-container">
+        <input type="time" id="start-time" required>
+        <input type="time" id="end-time" required>
+      </div>
       <select id="exercise" required>
         <option value="">Select Exercise</option>
         <option value="Bench Press">Bench Press</option>
@@ -154,12 +168,8 @@
         <option value="other">Other (specify)</option>
       </select>
       <input type="text" id="custom-exercise" placeholder="Custom Exercise Name" style="display: none;">
-      <input type="number" id="weight" placeholder="Weight (lbs)" required>
       <div id="sets-container">
-        <div class="set-container">
-          <input type="number" class="reps" placeholder="Reps for Set 1" required>
-          <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
-        </div>
+        <!-- Sets will be dynamically added here -->
       </div>
       <button type="button" id="add-set">Add Set</button>
       <button type="submit">Add Exercise</button>
@@ -169,8 +179,9 @@
       <thead>
         <tr>
           <th>Date</th>
+          <th>Start Time</th>
+          <th>End Time</th>
           <th>Exercise</th>
-          <th>Weight</th>
           <th>Sets</th>
           <th>Actions</th>
         </tr>
@@ -203,6 +214,7 @@
     let exercises = JSON.parse(localStorage.getItem('exercises')) || [];
 
     document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('start-time').value = new Date().toTimeString().slice(0,5);
 
     exerciseSelect.addEventListener('change', function() {
       if (this.value === 'other') {
@@ -218,11 +230,12 @@
       table.innerHTML = '';
       exercises.forEach((exercise, index) => {
         const row = table.insertRow();
-        const setsInfo = exercise.sets.map(set => `Set ${set.setNumber}: ${set.reps}`).join('<br>');
+        const setsInfo = exercise.sets.map(set => `Set ${set.setNumber}: ${set.weight} lbs x ${set.reps}`).join('<br>');
         row.innerHTML = `
           <td>${exercise.date}</td>
+          <td>${exercise.startTime}</td>
+          <td>${exercise.endTime}</td>
           <td>${exercise.name}</td>
-          <td>${exercise.weight}</td>
           <td>${setsInfo}</td>
           <td>
             <button onclick="editExercise(${index})">Edit</button>
@@ -237,6 +250,7 @@
       const setDiv = document.createElement('div');
       setDiv.className = 'set-container';
       setDiv.innerHTML = `
+        <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" required>
         <input type="number" class="reps" placeholder="Reps for Set ${setNumber}" required>
         <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
       `;
@@ -251,9 +265,12 @@
     }
 
     function updateSetNumbers() {
-      const setInputs = setsContainer.getElementsByClassName('reps');
-      for (let i = 0; i < setInputs.length; i++) {
-        setInputs[i].placeholder = `Reps for Set ${i + 1}`;
+      const setContainers = setsContainer.getElementsByClassName('set-container');
+      for (let i = 0; i < setContainers.length; i++) {
+        const weightInput = setContainers[i].getElementsByClassName('weight')[0];
+        const repsInput = setContainers[i].getElementsByClassName('reps')[0];
+        weightInput.placeholder = `Weight for Set ${i + 1} (lbs)`;
+        repsInput.placeholder = `Reps for Set ${i + 1}`;
       }
     }
 
@@ -262,11 +279,13 @@
       const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
       const exercise = {
         date: document.getElementById('date').value,
+        startTime: document.getElementById('start-time').value,
+        endTime: document.getElementById('end-time').value,
         name: exerciseName,
-        weight: document.getElementById('weight').value,
-        sets: Array.from(setsContainer.getElementsByClassName('reps')).map((input, index) => ({
+        sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
-          reps: input.value
+          weight: container.getElementsByClassName('weight')[0].value,
+          reps: container.getElementsByClassName('reps')[0].value
         }))
       };
       exercises.push(exercise);
@@ -274,6 +293,7 @@
       renderExercises();
       form.reset();
       document.getElementById('date').valueAsDate = new Date();
+      document.getElementById('start-time').value = new Date().toTimeString().slice(0,5);
       setsContainer.innerHTML = '';
       addSet();
       customExerciseInput.style.display = 'none';
@@ -282,6 +302,8 @@
     function editExercise(index) {
       const exercise = exercises[index];
       document.getElementById('date').value = exercise.date;
+      document.getElementById('start-time').value = exercise.startTime;
+      document.getElementById('end-time').value = exercise.endTime;
       if (exerciseSelect.querySelector(`option[value="${exercise.name}"]`)) {
         exerciseSelect.value = exercise.name;
         customExerciseInput.style.display = 'none';
@@ -290,11 +312,12 @@
         customExerciseInput.value = exercise.name;
         customExerciseInput.style.display = 'block';
       }
-      document.getElementById('weight').value = exercise.weight;
       setsContainer.innerHTML = '';
       exercise.sets.forEach(set => {
         addSet();
-        setsContainer.lastChild.getElementsByClassName('reps')[0].value = set.reps;
+        const lastSet = setsContainer.lastChild;
+        lastSet.getElementsByClassName('weight')[0].value = set.weight;
+        lastSet.getElementsByClassName('reps')[0].value = set.reps;
       });
       exercises.splice(index, 1);
       localStorage.setItem('exercises', JSON.stringify(exercises));
@@ -313,9 +336,11 @@
       const flattenedExercises = exercises.flatMap(exercise => 
         exercise.sets.map(set => ({
           date: exercise.date,
+          startTime: exercise.startTime,
+          endTime: exercise.endTime,
           name: exercise.name,
-          weight: exercise.weight,
           setNumber: set.setNumber,
+          weight: set.weight,
           reps: set.reps
         }))
       );
