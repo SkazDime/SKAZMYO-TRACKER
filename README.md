@@ -1,5 +1,5 @@
 Skazius Strength Tracker App
-Skazius Strength Tracker is a personal resistance training tracker app designed for use on a Samsung S21 device. This app allows you to log and monitor your strength training exercises, providing a comprehensive tool for tracking your fitness progress.
+Skazius Strength Tracker is a personal resistance training tracker app designed for use on an Android device. This app allows you to log and monitor your strength training exercises, providing a comprehensive tool for tracking your fitness progress.
 
 Features
 Log exercises with date, start time, and end time
@@ -9,14 +9,14 @@ Custom exercise input option
 Edit and delete logged exercises
 Export data as a CSV spreadsheet
 Dark mode interface for reduced eye strain
-Responsive design optimized for Android phones
+Responsive design optimized for Android devices
 Installation
 As this app is designed for personal use on an Android phone, follow these steps to install it on your device:
 
 Clone this repository to your local machine or download it as a ZIP file.
 Transfer the app files to your device.
 On your device, navigate to the folder containing the app files.
-Open the index.html file in Samsung Internet Browser or Google Chrome.
+Open the index.html file in browser or Google Chrome.
 Add the page to your home screen for easy access:
 In Samsung Internet: Tap the menu icon (three dots) > "Add page to" > "Home screen"
 In Chrome: Tap the menu icon (three dots) > "Add to Home screen"
