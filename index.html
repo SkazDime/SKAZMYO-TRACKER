@@ -1,11 +1,11 @@
-<html><head><base href="https://websim.example.com/skazius-strength-tracker/">
+<html><head><base href="https://skazdime.github.io/SKAZIUS-STRENGTH-TRACKER/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#121212">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Skazius Strength Tracker App</title>
-<link rel="manifest" href="https://skazdime.github.io/SKAZIUS-STRENGTH-TRACKER/manifest.json">
+<link rel="manifest" href="manifest.json">
 <style>
   body {
     font-family: 'Roboto', sans-serif;
@@ -80,6 +80,9 @@
   .set-container input {
     flex: 1;
   }
+  .set-container input[type="text"] {
+    flex: 2;
+  }
   .remove-set {
     background-color: #cf6679;
     color: #ffffff;
@@ -136,6 +139,26 @@
   .time-container input {
     flex: 1;
   }
+  .superset-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+    padding-left: 20px;
+    border-left: 2px solid #0892fc;
+  }
+  .superset-container input {
+    flex: 1;
+  }
+  .remove-superset {
+    background-color: #cf6679;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 14px;
+  }
+  .remove-superset:hover, .remove-superset:focus {
+    background-color: #b55464;
+  }
   @media (max-width: 480px) {
     .set-container, .time-container {
       flex-direction: column;
@@ -145,12 +168,19 @@
     .time-container input {
       width: 100%;
     }
+    .superset-container {
+      flex-direction: column;
+      gap: 5px;
+    }
+    .superset-container input, .superset-container button {
+      width: 100%;
+    }
   }
 </style>
 </head>
 <body>
   <div class="container">
-    <img src="https://skazdime.github.io/SKAZIUS-STRENGTH-TRACKER/skaz.png" alt="Stylized skull helmet logo in red and black" class="logo" width="100" height="100">
+    <img src="skaz.png" alt="Stylized skull helmet logo in red and black" class="logo" width="100" height="100">
     <h1>Skazius Strength Tracker</h1>
     <form id="exercise-form">
       <input type="date" id="date" required>
@@ -195,7 +225,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('./service-worker.js')
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
           }, err => {
@@ -226,35 +256,46 @@
       }
     });
 
-    function renderExercises() {
-      table.innerHTML = '';
-      exercises.forEach((exercise, index) => {
-        const row = table.insertRow();
-        const setsInfo = exercise.sets.map(set => `Set ${set.setNumber}: ${set.weight} lbs x ${set.reps}`).join('<br>');
-        row.innerHTML = `
-          <td>${exercise.date}</td>
-          <td>${exercise.startTime}</td>
-          <td>${exercise.endTime}</td>
-          <td>${exercise.name}</td>
-          <td>${setsInfo}</td>
-          <td>
-            <button onclick="editExercise(${index})">Edit</button>
-            <button onclick="deleteExercise(${index})">Delete</button>
-          </td>
-        `;
-      });
+    function getLastEnteredWeight() {
+      const weightInputs = setsContainer.getElementsByClassName('weight');
+      return weightInputs.length > 0 ? weightInputs[weightInputs.length - 1].value : '';
     }
 
     function addSet() {
       const setNumber = setsContainer.children.length + 1;
+      const lastWeight = getLastEnteredWeight();
       const setDiv = document.createElement('div');
       setDiv.className = 'set-container';
       setDiv.innerHTML = `
-        <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" required>
+        <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" value="${lastWeight}" required>
         <input type="number" class="reps" placeholder="Reps for Set ${setNumber}" required>
+        <input type="text" class="notes" placeholder="Notes for Set ${setNumber}">
         <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
+        <button type="button" class="add-superset" onclick="addSuperset(this)">Add Superset</button>
       `;
       setsContainer.appendChild(setDiv);
+    }
+
+    function addSuperset(button) {
+      const setContainer = button.parentElement;
+      const supersetDiv = document.createElement('div');
+      supersetDiv.className = 'superset-container';
+      supersetDiv.innerHTML = `
+        <input type="text" class="superset-exercise" placeholder="Superset Exercise" required>
+        <input type="number" class="superset-weight" placeholder="Weight (lbs)" required>
+        <input type="number" class="superset-reps" placeholder="Reps" required>
+        <input type="text" class="superset-notes" placeholder="Notes">
+        <button type="button" class="remove-superset" onclick="removeSuperset(this)">Remove Superset</button>
+      `;
+      setContainer.appendChild(supersetDiv);
+      button.style.display = 'none';
+    }
+
+    function removeSuperset(button) {
+      const supersetDiv = button.parentElement;
+      const setContainer = supersetDiv.parentElement;
+      supersetDiv.remove();
+      setContainer.querySelector('.add-superset').style.display = 'inline-block';
     }
 
     function removeSet(button) {
@@ -269,9 +310,19 @@
       for (let i = 0; i < setContainers.length; i++) {
         const weightInput = setContainers[i].getElementsByClassName('weight')[0];
         const repsInput = setContainers[i].getElementsByClassName('reps')[0];
+        const notesInput = setContainers[i].getElementsByClassName('notes')[0];
         weightInput.placeholder = `Weight for Set ${i + 1} (lbs)`;
         repsInput.placeholder = `Reps for Set ${i + 1}`;
+        notesInput.placeholder = `Notes for Set ${i + 1}`;
       }
+    }
+
+    function getFormattedDate() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
     form.addEventListener('submit', (e) => {
@@ -285,7 +336,14 @@
         sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
           weight: container.getElementsByClassName('weight')[0].value,
-          reps: container.getElementsByClassName('reps')[0].value
+          reps: container.getElementsByClassName('reps')[0].value,
+          notes: container.getElementsByClassName('notes')[0].value,
+          superset: container.querySelector('.superset-container') ? {
+            exercise: container.querySelector('.superset-exercise').value,
+            weight: container.querySelector('.superset-weight').value,
+            reps: container.querySelector('.superset-reps').value,
+            notes: container.querySelector('.superset-notes').value
+          } : null
         }))
       };
       exercises.push(exercise);
@@ -298,6 +356,27 @@
       addSet();
       customExerciseInput.style.display = 'none';
     });
+
+    function renderExercises() {
+      table.innerHTML = '';
+      exercises.forEach((exercise, index) => {
+        const row = table.insertRow();
+        row.innerHTML = `
+          <td>${exercise.date}</td>
+          <td>${exercise.startTime}</td>
+          <td>${exercise.endTime}</td>
+          <td>${exercise.name}</td>
+          <td>${exercise.sets.map(set => `
+            Set ${set.setNumber}: ${set.weight}lbs x ${set.reps} reps${set.notes ? ` (${set.notes})` : ''}
+            ${set.superset ? `<br>Superset: ${set.superset.exercise} - ${set.superset.weight}lbs x ${set.superset.reps} reps${set.superset.notes ? ` (${set.superset.notes})` : ''}` : ''}
+          `).join('<br>')}</td>
+          <td>
+            <button onclick="editExercise(${index})">Edit</button>
+            <button onclick="deleteExercise(${index})">Delete</button>
+          </td>
+        `;
+      });
+    }
 
     function editExercise(index) {
       const exercise = exercises[index];
@@ -318,6 +397,15 @@
         const lastSet = setsContainer.lastChild;
         lastSet.getElementsByClassName('weight')[0].value = set.weight;
         lastSet.getElementsByClassName('reps')[0].value = set.reps;
+        lastSet.getElementsByClassName('notes')[0].value = set.notes || '';
+        if (set.superset) {
+          addSuperset(lastSet.querySelector('.add-superset'));
+          const supersetContainer = lastSet.querySelector('.superset-container');
+          supersetContainer.querySelector('.superset-exercise').value = set.superset.exercise;
+          supersetContainer.querySelector('.superset-weight').value = set.superset.weight;
+          supersetContainer.querySelector('.superset-reps').value = set.superset.reps;
+          supersetContainer.querySelector('.superset-notes').value = set.superset.notes || '';
+        }
       });
       exercises.splice(index, 1);
       localStorage.setItem('exercises', JSON.stringify(exercises));
@@ -341,14 +429,22 @@
           name: exercise.name,
           setNumber: set.setNumber,
           weight: set.weight,
-          reps: set.reps
+          reps: set.reps,
+          notes: set.notes,
+          superset: set.superset ? {
+            exercise: set.superset.exercise,
+            weight: set.superset.weight,
+            reps: set.superset.reps,
+            notes: set.superset.notes
+          } : null
         }))
       );
       const csv = Papa.unparse(flattenedExercises);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'skazius_strength_data.csv';
+      const formattedDate = getFormattedDate();
+      link.download = `skazius_strength_data_${formattedDate}.csv`;
       link.click();
     });
 
@@ -356,8 +452,7 @@
 
     addSet();
     renderExercises();
-     
-    // Prevent zooming on inputs
+
     document.addEventListener('gesturestart', function(e) {
       e.preventDefault();
     });
