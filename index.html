@@ -159,6 +159,10 @@
   .remove-superset:hover, .remove-superset:focus {
     background-color: #b55464;
   }
+  #workout-split {
+    height: auto;
+    min-height: 100px;
+  }
   @media (max-width: 480px) {
     .set-container, .time-container {
       flex-direction: column;
@@ -188,6 +192,13 @@
         <input type="time" id="start-time" required>
         <input type="time" id="end-time" required>
       </div>
+      <select id="workout-split" multiple required>
+        <option value="chest">Chest</option>
+        <option value="back">Back</option>
+        <option value="legs">Legs</option>
+        <option value="arms">Arms</option>
+        <option value="shoulders">Shoulders</option>
+      </select>
       <select id="exercise" required>
         <option value="">Select Exercise</option>
         <option value="Bench Press">Bench Press</option>
@@ -212,6 +223,7 @@
           <th>Start Time</th>
           <th>End Time</th>
           <th>Exercise</th>
+          <th>Workout Split</th>
           <th>Sets</th>
           <th>Actions</th>
         </tr>
@@ -243,6 +255,7 @@
     const setsContainer = document.getElementById('sets-container');
     const exerciseSelect = document.getElementById('exercise');
     const customExerciseInput = document.getElementById('custom-exercise');
+    const workoutSplitSelect = document.getElementById('workout-split');
     let exercises = JSON.parse(localStorage.getItem('exercises')) || [];
 
     document.getElementById('date').valueAsDate = new Date();
@@ -330,11 +343,14 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
+      const workoutSplit = Array.from(workoutSplitSelect.selectedOptions).map(option => option.value);
+
       const exercise = {
         date: document.getElementById('date').value,
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
         name: exerciseName,
+        workoutSplit: workoutSplit,
         sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
           weight: container.getElementsByClassName('weight')[0].value,
@@ -368,6 +384,7 @@
           <td>${exercise.startTime}</td>
           <td>${exercise.endTime}</td>
           <td>${exercise.name}</td>
+          <td>${exercise.workoutSplit.join(', ')}</td>
           <td>${exercise.sets.map(set => `
             Set ${set.setNumber}: ${set.weight}lbs x ${set.reps} reps${set.notes ? ` (${set.notes})` : ''}
             ${set.superset ? `<br>Superset: ${set.superset.exercise} - ${set.superset.weight}lbs x ${set.superset.reps} reps${set.superset.notes ? ` (${set.superset.notes})` : ''}` : ''}
@@ -393,6 +410,7 @@
         customExerciseInput.value = exercise.name;
         customExerciseInput.style.display = 'block';
       }
+      workoutSplitSelect.value = exercise.workoutSplit;
       setsContainer.innerHTML = '';
       exercise.sets.forEach(set => {
         addSet();
@@ -428,6 +446,7 @@
           date: exercise.date,
           startTime: exercise.startTime,
           endTime: exercise.endTime,
+          workoutSplit: exercise.workoutSplit.join(', '),
           name: exercise.name,
           setNumber: set.setNumber,
           weight: set.weight,
@@ -456,6 +475,7 @@
         logText += `Date: ${exercise.date}\n`;
         logText += `Start Time: ${exercise.startTime}\n`;
         logText += `End Time: ${exercise.endTime}\n`;
+        logText += `Workout Split: ${exercise.workoutSplit.join(', ')}\n`;
         logText += `Exercise: ${exercise.name}\n`;
         logText += "Sets:\n";
         exercise.sets.forEach(set => {
