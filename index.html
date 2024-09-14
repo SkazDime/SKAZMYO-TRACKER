@@ -376,38 +376,6 @@
       return `${year}-${month}-${day}`;
     }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
-      const exercise = {
-        date: document.getElementById('date').value,
-        startTime: document.getElementById('start-time').value,
-        endTime: document.getElementById('end-time').value,
-        name: exerciseName,
-        sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
-          setNumber: index + 1,
-          weight: container.getElementsByClassName('weight')[0].value,
-          reps: container.getElementsByClassName('reps')[0].value,
-          notes: container.getElementsByClassName('notes')[0].value,
-          superset: container.querySelector('.superset-container') ? {
-            exercise: container.querySelector('.superset-exercise').value,
-            weight: container.querySelector('.superset-weight').value,
-            reps: container.querySelector('.superset-reps').value,
-            notes: container.querySelector('.superset-notes').value
-          } : null
-        }))
-      };
-      exercises.push(exercise);
-      localStorage.setItem('exercises', JSON.stringify(exercises));
-      renderExercises();
-      form.reset();
-      document.getElementById('date').valueAsDate = new Date();
-      document.getElementById('start-time').value = new Date().toTimeString().slice(0,5);
-      setsContainer.innerHTML = '';
-      addSet();
-      customExerciseInput.style.display = 'none';
-    });
-
     function renderExercises() {
       table.innerHTML = '';
       exercises.forEach((exercise, index) => {
