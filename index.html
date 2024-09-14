@@ -290,7 +290,7 @@
         date: document.getElementById('date').value,
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
-        split: document.getElementById('split-container').selectedSplit,
+        split: selectedSplit,
         name: exerciseName,
         sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
@@ -481,7 +481,7 @@
         logText += `Date: ${exercise.date}\n`;
         logText += `Start Time: ${exercise.startTime}\n`;
         logText += `End Time: ${exercise.endTime}\n`;
-        logText += 'Split: ${exercise.split}\n';
+        logText += `Split: ${exercise.split.join(', ')}\n`;
         logText += `Exercise: ${exercise.name}\n`;
         logText += "Sets:\n";
         exercise.sets.forEach(set => {
