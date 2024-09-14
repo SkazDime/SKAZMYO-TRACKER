@@ -290,7 +290,7 @@
         date: document.getElementById('date').value,
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
-        split: selectedSplit,
+        split: document.getElementById('split-container').selectedSplit,
         name: exerciseName,
         sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
