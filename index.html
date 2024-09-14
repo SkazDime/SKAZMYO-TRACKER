@@ -188,6 +188,14 @@
         <input type="time" id="start-time" required>
         <input type="time" id="end-time" required>
       </div>
+      <h3>Today's Split</h3>
+      <div id="split-container">
+        <label><input type="checkbox" name="split" value="chest"> Chest</label>
+        <label><input type="checkbox" name="split" value="back"> Back</label>
+        <label><input type="checkbox" name="split" value="legs"> Legs</label>
+        <label><input type="checkbox" name="split" value="shoulders"> Shoulders</label>
+        <label><input type="checkbox" name="split" value="arms"> Arms</label>
+      </div>      
       <select id="exercise" required>
         <option value="">Select Exercise</option>
         <option value="Bench Press">Bench Press</option>
@@ -239,6 +247,7 @@
     const table = document.getElementById('exercise-table').getElementsByTagName('tbody')[0];
     const exportBtn = document.getElementById('export-btn');
     const exportTxtBtn = document.getElementById('export-txt-btn');
+    const splitContainer = document.getElementById('split-container');
     const addSetBtn = document.getElementById('add-set');
     const setsContainer = document.getElementById('sets-container');
     const exerciseSelect = document.getElementById('exercise');
@@ -247,7 +256,12 @@
 
     document.getElementById('date').valueAsDate = new Date();
     document.getElementById('start-time').value = new Date().toTimeString().slice(0,5);
-
+    
+    const selectedSplit = [];
+    const checkboxes = splitContainer.querySelectorAll('input[name="split"]:checked');
+    checkboxes.forEach((checkbox) => {
+        selectedSplit.push(checkbox.value);
+    });
     exerciseSelect.addEventListener('change', function() {
       if (this.value === 'other') {
         customExerciseInput.style.display = 'block';
