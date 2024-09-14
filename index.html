@@ -131,7 +131,10 @@
       addSet();
       customExerciseInput.classList.add('hidden');
     });
-
+    function getLastEnteredWeight() {
+    const weightInputs = setsContainer.getElementsByClassName('weight');
+    return weightInputs.length > 0 ? weightInputs[weightInputs.length - 1].value : '';
+}
     function addSet() {
       const setNumber = setsContainer.children.length + 1;
       const lastWeight = getLastEnteredWeight();
