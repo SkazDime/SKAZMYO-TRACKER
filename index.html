@@ -279,11 +279,18 @@
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      // Get the checked checkboxes for "Today's Split"
+    const selectedSplit = [];
+    const checkboxes = splitContainer.querySelectorAll('input[name="split"]:checked');
+    checkboxes.forEach((checkbox) => {
+        selectedSplit.push(checkbox.value);
+    });
       const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
       const exercise = {
         date: document.getElementById('date').value,
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
+        split: selectedSplit,
         name: exerciseName,
         sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
           setNumber: index + 1,
