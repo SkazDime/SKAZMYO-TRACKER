@@ -331,6 +331,16 @@
 
     addSet(); // Initial set added on page load
     renderExercises(); // Populate the table with exercises if any are in local storage
+
+    document.addEventListener('click', function (event) {
+    if (event.target && event.target.classList.contains('remove-set')) {
+        // Find the parent container of the clicked "Remove" button
+        let setContainer = event.target.closest('.set-container');
+        if (setContainer) {
+            setContainer.remove(); // Remove the entire set container
+        }
+    }
+});
   </script>
 </body>
 </html>
