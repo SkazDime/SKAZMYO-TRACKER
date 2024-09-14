@@ -321,26 +321,225 @@
         <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" value="${lastWeight}" required>
         <input type="number" class="reps" placeholder="Reps for Set ${setNumber}" required>
         <input type="text" class="notes" placeholder="Notes for Set ${setNumber}">
-        <button class="remove-set">Remove</button>
+        <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
         <button type="button" class="add-superset" onclick="addSuperset(this)">Add Superset</button>
       `;
       setsContainer.appendChild(setDiv);
     }
 
-    // Define other helper functions like addSuperset, removeSet, renderExercises
-
-    addSet(); // Initial set added on page load
-    renderExercises(); // Populate the table with exercises if any are in local storage
-
-    document.addEventListener('click', function (event) {
-    if (event.target && event.target.classList.contains('remove-set')) {
-        // Find the parent container of the clicked "Remove" button
-        let setContainer = event.target.closest('.set-container');
-        if (setContainer) {
-            setContainer.remove(); // Remove the entire set container
-        }
+    function addSuperset(button) {
+      const setContainer = button.parentElement;
+      const supersetDiv = document.createElement('div');
+      supersetDiv.className = 'superset-container';
+      supersetDiv.innerHTML = `
+        <input type="text" class="superset-exercise" placeholder="Superset Exercise" required>
+        <input type="number" class="superset-weight" placeholder="Weight (lbs)" required>
+        <input type="number" class="superset-reps" placeholder="Reps" required>
+        <input type="text" class="superset-notes" placeholder="Notes">
+        <button type="button" class="remove-superset" onclick="removeSuperset(this)">Remove Superset</button>
+      `;
+      setContainer.appendChild(supersetDiv);
+      button.style.display = 'none';
     }
-});
+
+    function removeSuperset(button) {
+      const supersetDiv = button.parentElement;
+      const setContainer = supersetDiv.parentElement;
+      supersetDiv.remove();
+      setContainer.querySelector('.add-superset').style.display = 'inline-block';
+    }
+
+    function removeSet(button) {
+      if (setsContainer.children.length > 1) {
+        button.parentElement.remove();
+        updateSetNumbers();
+      }
+    }
+
+    function updateSetNumbers() {
+      const setContainers = setsContainer.getElementsByClassName('set-container');
+      for (let i = 0; i < setContainers.length; i++) {
+        const weightInput = setContainers[i].getElementsByClassName('weight')[0];
+        const repsInput = setContainers[i].getElementsByClassName('reps')[0];
+        const notesInput = setContainers[i].getElementsByClassName('notes')[0];
+        weightInput.placeholder = `Weight for Set ${i + 1} (lbs)`;
+        repsInput.placeholder = `Reps for Set ${i + 1}`;
+        notesInput.placeholder = `Notes for Set ${i + 1}`;
+      }
+    }
+
+    function getFormattedDate() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const exerciseName = exerciseSelect.value === 'other' ? customExerciseInput.value : exerciseSelect.value;
+      const exercise = {
+        date: document.getElementById('date').value,
+        startTime: document.getElementById('start-time').value,
+        endTime: document.getElementById('end-time').value,
+        name: exerciseName,
+        sets: Array.from(setsContainer.getElementsByClassName('set-container')).map((container, index) => ({
+          setNumber: index + 1,
+          weight: container.getElementsByClassName('weight')[0].value,
+          reps: container.getElementsByClassName('reps')[0].value,
+          notes: container.getElementsByClassName('notes')[0].value,
+          superset: container.querySelector('.superset-container') ? {
+            exercise: container.querySelector('.superset-exercise').value,
+            weight: container.querySelector('.superset-weight').value,
+            reps: container.querySelector('.superset-reps').value,
+            notes: container.querySelector('.superset-notes').value
+          } : null
+        }))
+      };
+      exercises.push(exercise);
+      localStorage.setItem('exercises', JSON.stringify(exercises));
+      renderExercises();
+      form.reset();
+      document.getElementById('date').valueAsDate = new Date();
+      document.getElementById('start-time').value = new Date().toTimeString().slice(0,5);
+      setsContainer.innerHTML = '';
+      addSet();
+      customExerciseInput.style.display = 'none';
+    });
+
+    function renderExercises() {
+      table.innerHTML = '';
+      exercises.forEach((exercise, index) => {
+        const row = table.insertRow();
+        row.innerHTML = `
+          <td>${exercise.date}</td>
+          <td>${exercise.startTime}</td>
+          <td>${exercise.endTime}</td>
+          <td>${exercise.name}</td>
+          <td>${exercise.sets.map(set => `
+            Set ${set.setNumber}: ${set.weight}lbs x ${set.reps} reps${set.notes ? ` (${set.notes})` : ''}
+            ${set.superset ? `<br>Superset: ${set.superset.exercise} - ${set.superset.weight}lbs x ${set.superset.reps} reps${set.superset.notes ? ` (${set.superset.notes})` : ''}` : ''}
+          `).join('<br>')}</td>
+          <td>
+            <button onclick="editExercise(${index})">Edit</button>
+            <button onclick="deleteExercise(${index})">Delete</button>
+          </td>
+        `;
+      });
+    }
+
+    function editExercise(index) {
+      const exercise = exercises[index];
+      document.getElementById('date').value = exercise.date;
+      document.getElementById('start-time').value = exercise.startTime;
+      document.getElementById('end-time').value = exercise.endTime;
+      if (exerciseSelect.querySelector(`option[value="${exercise.name}"]`)) {
+        exerciseSelect.value = exercise.name;
+        customExerciseInput.style.display = 'none';
+      } else {
+        exerciseSelect.value = 'other';
+        customExerciseInput.value = exercise.name;
+        customExerciseInput.style.display = 'block';
+      }
+      setsContainer.innerHTML = '';
+      exercise.sets.forEach(set => {
+        addSet();
+        const lastSet = setsContainer.lastChild;
+        lastSet.getElementsByClassName('weight')[0].value = set.weight;
+        lastSet.getElementsByClassName('reps')[0].value = set.reps;
+        lastSet.getElementsByClassName('notes')[0].value = set.notes || '';
+        if (set.superset) {
+          addSuperset(lastSet.querySelector('.add-superset'));
+          const supersetContainer = lastSet.querySelector('.superset-container');
+          supersetContainer.querySelector('.superset-exercise').value = set.superset.exercise;
+          supersetContainer.querySelector('.superset-weight').value = set.superset.weight;
+          supersetContainer.querySelector('.superset-reps').value = set.superset.reps;
+          supersetContainer.querySelector('.superset-notes').value = set.superset.notes || '';
+        }
+      });
+      exercises.splice(index, 1);
+      localStorage.setItem('exercises', JSON.stringify(exercises));
+      renderExercises();
+    }
+
+    function deleteExercise(index) {
+      if (confirm('Are you sure you want to delete this exercise?')) {
+        exercises.splice(index, 1);
+        localStorage.setItem('exercises', JSON.stringify(exercises));
+        renderExercises();
+      }
+    }
+
+    exportBtn.addEventListener('click', () => {
+      const flattenedExercises = exercises.flatMap(exercise => 
+        exercise.sets.map(set => ({
+          date: exercise.date,
+          startTime: exercise.startTime,
+          endTime: exercise.endTime,
+          name: exercise.name,
+          setNumber: set.setNumber,
+          weight: set.weight,
+          reps: set.reps,
+          notes: set.notes,
+          superset: set.superset ? {
+            exercise: set.superset.exercise,
+            weight: set.superset.weight,
+            reps: set.superset.reps,
+            notes: set.superset.notes
+          } : null
+        }))
+      );
+      const csv = Papa.unparse(flattenedExercises);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const formattedDate = getFormattedDate();
+      link.download = `skazius_strength_data_${formattedDate}.csv`;
+      link.click();
+    });
+
+    function generateExerciseLogText() {
+      let logText = "EXERCISE LOG\n\n";
+      exercises.forEach((exercise, index) => {
+        logText += `Date: ${exercise.date}\n`;
+        logText += `Start Time: ${exercise.startTime}\n`;
+        logText += `End Time: ${exercise.endTime}\n`;
+        logText += `Exercise: ${exercise.name}\n`;
+        logText += "Sets:\n";
+        exercise.sets.forEach(set => {
+          logText += `  Set ${set.setNumber}: ${set.weight}lbs x ${set.reps} reps`;
+          if (set.notes) logText += ` (${set.notes})`;
+          logText += "\n";
+          if (set.superset) {
+            logText += `    Superset: ${set.superset.exercise} - ${set.superset.weight}lbs x ${set.superset.reps} reps`;
+            if (set.superset.notes) logText += ` (${set.superset.notes})`;
+            logText += "\n";
+          }
+        });
+        logText += "\n";
+      });
+      return logText;
+    }
+
+    exportTxtBtn.addEventListener('click', () => {
+      const logText = generateExerciseLogText();
+      const blob = new Blob([logText], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const formattedDate = getFormattedDate();
+      link.download = `skazius_strength_log_${formattedDate}.txt`;
+      link.click();
+    });
+
+    addSetBtn.addEventListener('click', addSet);
+
+    addSet();
+    renderExercises();
+
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
   </script>
 </body>
 </html>
