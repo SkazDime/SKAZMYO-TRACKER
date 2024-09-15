@@ -465,11 +465,24 @@
         }))
       );
       const csv = Papa.unparse(flattenedExercises);
+
+      // Get today's split checkboxes
+      const selectedSplit = [];
+      const checkboxes = splitContainer.querySelectorAll('input[name="split"]:checked');
+      checkboxes.forEach((checkbox) => {
+          selectedSplit.push(checkbox.value);
+      });
+
+      // Generate filename
+      const formattedDate = getFormattedDate();
+      const splitInfo = selectedSplit.length ? `_${selectedSplit.join('-')}` : ''; // Append split info to filename
+      const fileName = `skazius_strength_data_${formattedDate}${splitInfo}.csv`;
+
+      // Trigger download
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      const formattedDate = getFormattedDate();
-      link.download = `skazius_strength_data_${formattedDate}.csv`;
+      link.download = fileName;
       link.click();
     });
 
@@ -498,14 +511,27 @@
     }
 
     exportTxtBtn.addEventListener('click', () => {
-      const logText = generateExerciseLogText();
-      const blob = new Blob([logText], { type: 'text/plain;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      const formattedDate = getFormattedDate();
-      link.download = `skazius_strength_log_${formattedDate}.txt`;
-      link.click();
-    });
+  const logText = generateExerciseLogText();
+
+  // Get today's split checkboxes
+  const selectedSplit = [];
+  const checkboxes = splitContainer.querySelectorAll('input[name="split"]:checked');
+  checkboxes.forEach((checkbox) => {
+      selectedSplit.push(checkbox.value);
+  });
+
+  // Generate filename
+  const formattedDate = getFormattedDate();
+  const splitInfo = selectedSplit.length ? `_${selectedSplit.join('-')}` : ''; // Append split info to filename
+  const fileName = `skazius_strength_log_${formattedDate}${splitInfo}.txt`;
+
+  // Trigger download
+  const blob = new Blob([logText], { type: 'text/plain;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+});
 
     addSetBtn.addEventListener('click', addSet);
 
