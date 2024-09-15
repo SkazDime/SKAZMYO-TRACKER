@@ -452,18 +452,16 @@
           date: exercise.date,
           startTime: exercise.startTime,
           endTime: exercise.endTime,
-          split: exercise.split,
+          split: exercise.split.join(', '),  // Ensuring split is a string for CSV
           name: exercise.name,
           setNumber: set.setNumber,
           weight: set.weight,
           reps: set.reps,
-          notes: set.notes,
-          superset: set.superset ? {
-            exercise: set.superset.exercise,
-            weight: set.superset.weight,
-            reps: set.superset.reps,
-            notes: set.superset.notes
-          } : null
+          notes: set.notes || '', // Defaulting to empty string if no notes
+          supersetExercise: set.superset ? set.superset.exercise : '',  // Flattening superset fields
+          supersetWeight: set.superset ? set.superset.weight : '',
+          supersetReps: set.superset ? set.superset.reps : '',
+          supersetNotes: set.superset ? set.superset.notes : ''
         }))
       );
       const csv = Papa.unparse(flattenedExercises);
