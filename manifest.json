@@ -2,7 +2,7 @@
   "name": "Skazius Strength Tracker",
   "short_name": "Strength Tracker",
   "description": "Track your resistance training exercises and progress",
-  "start_url": "/index.html",
+  "start_url": "/SKAZMYO-TRACKER/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#0892fc",
