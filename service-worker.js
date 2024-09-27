@@ -1,10 +1,10 @@
 const CACHE_NAME = 'skazius-strength-tracker-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  'https://skazdime.github.io/SKAZMYO-TRACKER/',
+  'https://skazdime.github.io/SKAZMYO-TRACKER/index.html',
+  'https://skazdime.github.io/SKAZMYO-TRACKER/manifest.json',
+  'https://skazdime.github.io/SKAZMYO-TRACKER/icon-192x192.png',
+  'https://skazdime.github.io/SKAZMYO-TRACKER/icon-512x512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js'
 ];
 
