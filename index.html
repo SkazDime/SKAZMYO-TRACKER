@@ -366,7 +366,7 @@
       const setDiv = document.createElement('div');
       setDiv.className = 'set-container';
       setDiv.innerHTML = `
-        <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" value="${lastWeight}" required>
+        <input type="number" class="weight" placeholder="Weight for Set ${setNumber} (lbs)" value="${lastWeight}" step="0.01" required>
         <input type="number" class="reps" placeholder="Reps for Set ${setNumber}" required>
         <input type="text" class="notes" placeholder="Notes for Set ${setNumber}">
         <button type="button" class="remove-set" onclick="removeSet(this)">Remove</button>
