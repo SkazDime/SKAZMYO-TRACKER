@@ -271,12 +271,25 @@
   <script>
     // Service Worker registration logic
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => console.log('Service Worker registered with scope:', registration.scope))
-          .catch(err => console.log('Service Worker registration failed:', err));
-      });
-    }
+  navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+    registration.onupdatefound = () => {
+      const newWorker = registration.installing;
+
+      newWorker.onstatechange = () => {
+        if (newWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // A new service worker is available, show a notification to the user
+            console.log("New update available. Please refresh.");
+            alert("A new version of the app is available. Please refresh the page to update.");
+          } else {
+            // The page is being loaded for the first time
+            console.log("App is ready to work offline.");
+          }
+        }
+      };
+    };
+  });
+}
 
     const form = document.getElementById('exercise-form');
     const table = document.getElementById('exercise-table').getElementsByTagName('tbody')[0];
