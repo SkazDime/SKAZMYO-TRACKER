@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skazius-strength-tracker-v3.34';
+const CACHE_NAME = 'skazius-strength-tracker-v3.35';
 const urlsToCache = [
   'https://skazdime.github.io/SKAZMYO-TRACKER/',
   'https://skazdime.github.io/SKAZMYO-TRACKER/index.html',
