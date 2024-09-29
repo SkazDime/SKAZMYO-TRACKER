@@ -201,7 +201,40 @@
     .superset-container input, .superset-container button {
       width: 100%;
     }
-  }
+    #timer-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#timer-display {
+  font-size: 2em;
+  color: #b4fc57;
+  margin-bottom: 10px;
+}
+
+#start-timer-90, #start-timer-120 {
+  background-color: #0892fc;
+  color: #b4fc57;
+  margin-right: 10px;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#start-timer-90:hover, #start-timer-120:hover {
+  background-color: #0775d1;
+}
+    
+     .footer {
+        position: sticky;
+        padding: 5px;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background: rgb(55, 61, 55);
+        color: white;
+       }
 
   </style>
 </head>
@@ -287,6 +320,18 @@
     <button id="clear-all-btn">Clear All</button>
   </div>
 
+        <!-- Footer -->
+      <div class="footer">
+        <!-- Timer -->
+        <div id="timer-container">
+  <h3>Recovery Timer</h3>
+  <p id="timer-display">00:00</p>
+  <button type="button" id="start-timer-90">Start 90s Timer</button>
+  <button type="button" id="start-timer-120">Start 2min Timer</button>
+</div>
+
+    </div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script>
     // Service Worker registration logic
@@ -612,6 +657,31 @@ clearAllBtn.addEventListener('click', () => {
     renderExercises();
   }
 });
+    let timerInterval;
+
+function startTimer(duration) {
+  clearInterval(timerInterval); // Clear any existing timer
+  let time = duration;
+  const timerDisplay = document.getElementById('timer-display');
+  
+  timerInterval = setInterval(() => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    if (time === 0) {
+      clearInterval(timerInterval);
+      alert("Time's up! Get ready for the next set.");
+    }
+    
+    time--;
+  }, 1000);
+}
+
+// Event listeners for the buttons
+document.getElementById('start-timer-90').addEventListener('click', () => startTimer(90));
+document.getElementById('start-timer-120').addEventListener('click', () => startTimer(120));
+
 
   </script>
 </body>
