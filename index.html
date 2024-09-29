@@ -148,6 +148,14 @@
   #export-btn:hover, #export-btn:focus {
     background-color: #9edf4a;
   }
+  #clear-all-btn {
+    background-color: #e05151;
+    color: #121212;
+    margin-top: 10px;
+  }
+  #clear-all-btn:hover, #clear-all-btn:focus {
+    background-color: #ff5c61;
+  }  
   .time-container {
     display: flex;
     gap: 8px;
@@ -276,6 +284,7 @@
     </table>
     <button id="export-btn">Export to CSV</button>
     <button id="export-txt-btn">Export to TXT</button>
+    <button id="clear-all-btn">Clear All</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -593,6 +602,17 @@
     document.addEventListener('gesturestart', function(e) {
       e.preventDefault();
     });
+
+    // Clear All functionality
+const clearAllBtn = document.getElementById('clear-all-btn');
+clearAllBtn.addEventListener('click', () => {
+  if (confirm('Are you sure you want to clear all exercises? This action cannot be undone.')) {
+    exercises = [];
+    localStorage.setItem('exercises', JSON.stringify(exercises));
+    renderExercises();
+  }
+});
+
   </script>
 </body>
 </html>
